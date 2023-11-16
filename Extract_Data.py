@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 import pandas as pd
+import numpy as np
+import datetime as dt
 
 import os
 from dotenv import load_dotenv
@@ -57,8 +59,8 @@ class DataExtraction():
         # datetime
         df['last_scraped'] = pd.to_datetime(df['last_scraped'])
         df['calendar_last_scraped'] = pd.to_datetime(df['calendar_last_scraped'])
-        df['first_review'] = pd.to_datetime(df['first_review'])
-        df['last_review'] = pd.to_datetime(df['last_review'])
+        df['first_review'] = pd.to_datetime(df['first_review'], format = '%Y-%m-%d').dt.date
+        df['last_review'] = pd.to_datetime(df['last_review'], format = '%Y-%m-%d').dt.date
         df['last_scraped'] = pd.to_datetime(df['last_scraped'])
         df['last_scraped'] = pd.to_datetime(df['last_scraped'])
 
@@ -176,6 +178,64 @@ class DataExtraction():
 
 
 
+def Preprecessing(airbnb):
+
+    duplicates = airbnb.duplicated(subset = '_id', keep = 'first')
+    if not duplicates.empty:
+        airbnb.drop(airbnb[duplicates].index, inplace = True)
+
+    inconsistent_days=airbnb[(airbnb['availability_30'] <0 ) & (airbnb['availability_30'] >30)]
+    if not inconsistent_days.empty:
+        airbnb.drop(inconsistent_days.index, inplace = True)
+
+    inconsistent_days=airbnb[(airbnb['availability_60'] <0 ) & (airbnb['availability_60'] >60)]
+    if not inconsistent_days.empty:
+        airbnb.drop(inconsistent_days.index, inplace = True)
+
+    inconsistent_days=airbnb[(airbnb['availability_90'] <0 ) & (airbnb['availability_90'] >90)]
+    if not inconsistent_days.empty:
+        airbnb.drop(inconsistent_days.index, inplace = True)
+
+    inconsistent_days=airbnb[(airbnb['availability_365'] <0 ) & (airbnb['availability_365'] >365)]
+    if not inconsistent_days.empty:
+        airbnb.drop(inconsistent_days.index, inplace = True)
+
+    inconsistent_dates = airbnb[(airbnb['last_review']> dt.date.today()) | (airbnb['first_review']> dt.date.today())]
+    if not inconsistent_dates.empty:
+        airbnb.drop(inconsistent_dates.index, inplace = True)
+
+    inconsistent_dates = airbnb[airbnb['first_review'] >airbnb['last_review']]
+    if not inconsistent_dates.empty:
+        airbnb.drop(inconsistent_dates.index, inplace = True)
+
+    is_host_response = np.where((airbnb['host_response_time'].isna() == True) & (airbnb['host_response_rate'].isna() == True), 0, 1)
+    if len(is_host_response):
+        airbnb['is_host_response'] = is_host_response
+
+        airbnb = airbnb.fillna({'host_response_time':0,
+                                'host_response_rate':0})
+        
+    is_review_scores = np.where((airbnb['review_scores_accuracy'].isna() == True) & (airbnb['review_scores_cleanliness'].isna() == True) &
+                                (airbnb['review_scores_checkin'].isna() == True) & (airbnb['review_scores_communication'].isna() == True) &
+                                (airbnb['review_scores_location'].isna() == True) & (airbnb['review_scores_value'].isna() == True) &
+                                (airbnb['review_scores_rating'].isna() == True)
+                                , 0, 1)
+    
+    if len(is_review_scores):
+        airbnb['is_review_scores'] = is_review_scores
+
+        airbnb = airbnb.fillna({'review_scores_accuracy':0,
+                                'review_scores_cleanliness':0,
+                                'review_scores_checkin':0,
+                                'review_scores_communication':0,
+                                'review_scores_location':0,
+                                'review_scores_value':0,
+                                'review_scores_rating':0,})
+
+    return airbnb
+
+
+
 def Extract_Datas(username, password):
     
     data = DataExtraction(username, password)
@@ -186,6 +246,8 @@ def Extract_Datas(username, password):
     data.Availabiliity_Data()
 
     airbnb = data.Merge_Data()
+
+    airbnb=Preprecessing(airbnb)
 
     return airbnb
 
