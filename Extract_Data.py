@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import pandas as pd
 import numpy as np
 import datetime as dt
+import mysql.connector
 
 import os
 from dotenv import load_dotenv
@@ -12,6 +13,16 @@ load_dotenv()
 username =os.getenv("MONGODB_USER_NAME")
 password = os.getenv('MONGODB_PASSWORD')
 
+mysql_host_name = os.getenv("MYSQL_HOST_NAME")
+mysql_user_name = os.getenv("MYSQL_USER_NAME")
+mysql_password = os.getenv("MYSQL_PASSWORD")
+mysql_database_name = os.getenv("MYSQL_DATABASE_NAME")
+
+mydb = mysql.connector.connect(host = mysql_host_name,
+                             user = mysql_user_name,
+                             password = mysql_password,
+                             database = mysql_database_name)
+mycursor = mydb.cursor(buffered = True)
 
 class DataExtraction():
     def __init__(self, username, password):
@@ -30,6 +41,7 @@ class DataExtraction():
 
         for i in self.collection.find(query, projection):
             i['images']=i['images']['picture_url']
+            i['amenities'] = ', '.join(i['amenities'])
 
             data.append(i)
 
@@ -57,12 +69,10 @@ class DataExtraction():
         df['guests_included'] = df['guests_included'].astype(str).astype(float)
 
         # datetime
-        df['last_scraped'] = pd.to_datetime(df['last_scraped'])
-        df['calendar_last_scraped'] = pd.to_datetime(df['calendar_last_scraped'])
+        df['last_scraped'] = pd.to_datetime(df['last_scraped'], format = '%Y-%m-%d').dt.date
+        df['calendar_last_scraped'] = pd.to_datetime(df['calendar_last_scraped'], format = '%Y-%m-%d').dt.date
         df['first_review'] = pd.to_datetime(df['first_review'], format = '%Y-%m-%d').dt.date
         df['last_review'] = pd.to_datetime(df['last_review'], format = '%Y-%m-%d').dt.date
-        df['last_scraped'] = pd.to_datetime(df['last_scraped'])
-        df['last_scraped'] = pd.to_datetime(df['last_scraped'])
 
         self.df = df
 
@@ -74,6 +84,7 @@ class DataExtraction():
         projection = {'host':True,'_id':True}
         for i in self.collection.find(query, projection):
             i['host']['_id'] = i['_id']
+            i['host']["host_verifications"] = ', '.join(i['host']["host_verifications"])
 
             host.append(i['host'])
             
@@ -250,5 +261,168 @@ def Extract_Datas(username, password):
     airbnb=Preprecessing(airbnb)
 
     return airbnb
+
+def Create_Table():
+    mycursor.execute("""CREATE TABLE IF NOT EXISTS vacation_rental_listings(
+                        _id INT PRIMARY KEY,
+                        listing_url VARCHAR(250),
+                        name TEXT,
+                        space TEXT,
+                        neighborhood_overview LONGTEXT,
+                        notes LONGTEXT,
+                        transit LONGTEXT,
+                        access LONGTEXT,
+                        interaction LONGTEXT,
+                        house_rules LONGTEXT,
+                        property_type VARCHAR(250),
+                        room_type VARCHAR(250),
+                        bed_type VARCHAR(250),
+                        minimum_nights INT,
+                        maximum_nights INT,
+                        cancellation_policy VARCHAR(250),
+                        last_scraped DATE,
+                        calendar_last_scraped DATE,
+                        first_review DATE,
+                        last_review DATE,
+                        accommodates INT,
+                        bedrooms INT,
+                        beds INT, 
+                        number_of_reviews INT, 
+                        bathrooms INT, 
+                        amenities TEXT,
+                        price FLOAT,
+                        extra_people FLOAT,
+                        guests_included FLOAT,
+                        images VARCHAR(250),
+                        host_id INT,
+                        host_url VARCHAR(250),
+                        host_name VARCHAR(250),
+                        host_location VARCHAR(250),
+                        host_about LONGTEXT,
+                        host_response_time VARCHAR(250),
+                        host_thumbnail_url VARCHAR(250),
+                        host_picture_url VARCHAR(250),
+                        host_neighbourhood VARCHAR(250),
+                        host_response_rate FLOAT,
+                        host_is_superhost BOOL,
+                        host_has_profile_pic BOOL,
+                        host_identity_verified BOOL,
+                        host_listings_count INT,
+                        host_total_listings_count INT,
+                        host_verifications VARCHAR(250),
+                        Steet VARCHAR(250),
+                        Suburb VARCHAR(250),
+                        Government_Area VARCHAR(250),
+                        Market VARCHAR(250),
+                        Country VARCHAR(250),
+                        Country_Code VARCHAR(250),
+                        Location_type VARCHAR(250),
+                        Longitude FLOAT,
+                        Latitude FLOAT,
+                        Is_Location_Exact BOOL,
+                        review_scores_accuracy FLOAT,
+                        review_scores_cleanliness FLOAT,
+                        review_scores_checkin FLOAT,
+                        review_scores_communication FLOAT,
+                        review_scores_location FLOAT,
+                        review_scores_value FLOAT,
+                        review_scores_rating FLOAT,
+                        availability_30 INT,
+                        availability_60 INT,
+                        availability_90 INT,
+                        availability_365 INT,
+                        is_host_response BOOL,
+                        is_review_scores BOOL);
+                        """)
+    mydb.commit()
+    return 'Sucessfully Table Created!'
+
+
+def Insert(airbnb):
+    query =f"""INSERT INTO vacation_rental_listings
+            (_id, listing_url, name, space, neighborhood_overview, notes, transit, access, interaction, house_rules, property_type, room_type, bed_type, minimum_nights, maximum_nights,
+            cancellation_policy, last_scraped, calendar_last_scraped, first_review, last_review, accommodates, bedrooms, beds, number_of_reviews, bathrooms, amenities, 
+            price, extra_people, guests_included, images, host_id, host_url, host_name, host_location, host_about, host_response_time, host_thumbnail_url,
+            host_picture_url, host_neighbourhood, host_response_rate, host_is_superhost, host_has_profile_pic, host_identity_verified, host_listings_count,
+            host_total_listings_count, host_verifications, Steet, Suburb, Government_Area, Market, Country, Country_Code, Location_type,Longitude, Latitude,
+            Is_Location_Exact, review_scores_accuracy, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location,
+            review_scores_value, review_scores_rating, availability_30, availability_60, availability_90, availability_365, is_host_response, is_review_scores)
+            VALUES
+            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+              %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+            listing_url = VALUES(listing_url),
+            name = VALUES(name),
+            space = VALUES(space),
+            neighborhood_overview  = VALUES(neighborhood_overview),
+            notes = VALUES(notes),
+            transit = VALUES(transit),
+            access = VALUES(access),
+            interaction = VALUES(interaction),
+            house_rules = VALUES(house_rules),
+            property_type = VALUES(property_type),
+            room_type = VALUES(room_type),
+            bed_type = VALUES(bed_type),
+            minimum_nights = VALUES(minimum_nights),
+            maximum_nights = VALUES(maximum_nights),
+            cancellation_policy = VALUES(cancellation_policy),
+            last_scraped = VALUES(last_scraped),
+            calendar_last_scraped = VALUES(calendar_last_scraped),
+            first_review = VALUES(first_review),
+            last_review = VALUES(last_review),
+            accommodates = VALUES(accommodates),
+            bedrooms = VALUES(bedrooms),
+            beds = VALUES(beds),
+            number_of_reviews = VALUES(number_of_reviews),
+            bathrooms = VALUES(bathrooms),
+            amenities = VALUES(amenities),
+            price = VALUES(price),
+            extra_people = VALUES(extra_people),
+            guests_included = VALUES(guests_included),
+            images = VALUES(images),
+            host_id = VALUES(host_id),
+            host_url = VALUES(host_url),
+            host_name = VALUES(host_name),
+            host_location = VALUES(host_location),
+            host_about = VALUES(host_about),
+            host_response_time = VALUES(host_response_time),
+            host_thumbnail_url = VALUES(host_thumbnail_url),
+            host_picture_url = VALUES(host_picture_url),
+            host_neighbourhood = VALUES(host_neighbourhood),
+            host_response_rate = VALUES(host_response_rate),
+            host_is_superhost = VALUES(host_is_superhost),
+            host_has_profile_pic = VALUES(host_has_profile_pic),
+            host_identity_verified = VALUES(host_identity_verified),
+            host_listings_count = VALUES(host_listings_count),
+            host_total_listings_count = VALUES(host_total_listings_count),
+            host_verifications = VALUES(host_verifications),
+            Steet = VALUES(Steet),
+            Suburb = VALUES(Suburb),
+            Government_Area = VALUES(Government_Area),
+            Market = VALUES(Market),
+            Country = VALUES(Country),
+            Country_Code = VALUES(Country_Code),
+            Location_type = VALUES(Location_type),
+            Longitude = VALUES(Longitude),
+            Latitude = VALUES(Latitude),
+            Is_Location_Exact = VALUES(Is_Location_Exact),
+            review_scores_accuracy = VALUES(review_scores_accuracy),
+            review_scores_cleanliness = VALUES(review_scores_cleanliness),
+            review_scores_checkin = VALUES(review_scores_checkin),
+            review_scores_communication = VALUES(review_scores_communication),
+            review_scores_location = VALUES(review_scores_location),
+            review_scores_value = VALUES(review_scores_value),
+            review_scores_rating = VALUES(review_scores_rating),
+            availability_30 = VALUES(availability_30),
+            availability_60 = VALUES(availability_60),
+            availability_90 = VALUES(availability_90),
+            availability_365 = VALUES(availability_365),
+            is_host_response = VALUES(is_host_response),
+            is_review_scores = VALUES(is_review_scores);"""
+    
+    values = airbnb.values.tolist()
+    mycursor.executemany(query, values)
+    mydb.commit()
+    return 'Successfully Inserted!'
 
 
