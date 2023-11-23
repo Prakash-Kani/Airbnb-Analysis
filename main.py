@@ -88,18 +88,13 @@ def Geo_fig(country, suburb, bedrooms):
     mycursor.execute(query)
     data=mycursor.fetchall()
     df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
-    fig = px.scatter_mapbox(df,
-                            lat=df['Latitude'],
-                            lon=df['Longitude'],
-                            hover_name="Suburb",
-                            zoom=10,
-                            mapbox_style="satellite"
-                        )  
+ 
     fig = px.scatter_geo(df,
                         lat=df.Latitude,
                         lon=df.Longitude,
                         hover_name="Country",
                         size='Price',
+                        title = 'Geo - Visualization',
                         color='Suburb',
                         color_continuous_scale='Price', height = 400, width = 600
                         )
@@ -155,5 +150,45 @@ def room_price(country, suburb, bedrooms):
     mycursor.execute(query)
     data=mycursor.fetchall()
     df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
-    fig = px.pie(df, values='Avg_room_price', names='room_type', hole=.6,labels='Avg_room_price')
+    fig = px.pie(df, values='Avg_room_price', names='room_type', hole=.7, labels='Avg_room_price', custom_data= 'room_type')
+    fig.update_traces(hovertemplate=None, textposition='outside',
+                  textinfo='percent+label', rotation=0)
+    fig.add_annotation(dict(x=0.5, y=0.53,  align='center',
+                        xref = "paper", yref = "paper",
+                        showarrow = False, 
+                        text="<span style='font-size: 35px; color=#555; font-family:Times New Roman'>Room Type</span>"))
+    return fig
+
+def bed_price_pie(country, suburb, bedrooms):
+    query = """SELECT bed_type, AVG(price) AS Avg_room_price FROM vacation_rental_listings"""
+    query = to_query(query, country, suburb, bedrooms)
+    query = query + " GROUP BY bed_type"
+    # print(query)
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    fig = px.pie(df, values='Avg_room_price', names='bed_type', hole=.7, labels='Avg_room_price', custom_data= 'bed_type')
+    fig.update_traces(hovertemplate=None, textposition='outside',
+                  textinfo='percent+label', rotation=0)
+    fig.add_annotation(dict(x=0.5, y=0.53,  align='center',
+                        xref = "paper", yref = "paper",
+                        showarrow = False, 
+                        text="<span style='font-size: 35px; color=#555; font-family:Times New Roman'>Bed Type</span>"))
+    return fig
+
+def top_10_suburb_properties(country, suburb, bedrooms):
+    query = "SELECT TRIM(Suburb) AS Suburb, COUNT(TRIM(Suburb)) AS Number_of_Properties FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+    if query == "SELECT TRIM(Suburb) AS Suburb, COUNT(TRIM(Suburb)) AS Number_of_Properties FROM vacation_rental_listings":
+            query = query +""" Where Suburb IS NOT NULL AND TRIM(Suburb) <> ''
+                                GROUP BY TRIM(Suburb)
+                                ORDER BY Number_of_Properties DESC LIMIT 10;"""
+    else:
+        query = query +""" and Suburb IS NOT NULL AND TRIM(Suburb) <> ''
+                            GROUP BY TRIM(Suburb)
+                            ORDER BY Number_of_Properties DESC LIMIT 10;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    fig = px.bar(df, x='Suburb', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 10 Suburb by Number of Properties')
     return fig
