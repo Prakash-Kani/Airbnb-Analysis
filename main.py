@@ -190,5 +190,46 @@ def top_10_suburb_properties(country, suburb, bedrooms):
     mycursor.execute(query)
     data=mycursor.fetchall()
     df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
-    fig = px.bar(df, x='Suburb', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 10 Suburb by Number of Properties')
+    fig = px.bar(df, x='Suburb', y='Number_of_Properties', text = 'Number_of_Properties', 
+                 title='Top 10 Suburb by Number of Properties', color ='Number_of_Properties')
+    return fig
+
+
+def top_10_host_properties(country, suburb, bedrooms):
+    query = "SELECT host_name, count(host_name) as Number_of_Properties FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY host_name ORDER BY Number_of_Properties DESC LIMIT 10;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    fig = px.bar(df, x='host_name', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 10 Suburb by Number of Properties', color= 'Number_of_Properties')
+    return fig
+
+def min_nights_properties(country, suburb, bedrooms):
+    query = "SELECT minimum_nights, count(host_name) as Number_of_Properties FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY minimum_nights ORDER BY Number_of_Properties DESC LIMIT 5;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    fig = px.bar(df, x='minimum_nights', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 5 Minimun Nights Properties Count', color= 'Number_of_Properties')
+    return fig
+
+
+
+
+
+def max_nights_properties(country, suburb, bedrooms):
+    query = "SELECT maximum_nights, count(host_name) as Number_of_Properties FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY maximum_nights ORDER BY Number_of_Properties DESC LIMIT 5;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    df['maximum_nights'] = df['maximum_nights'].astype(str)
+    df['maximum_nights'] = df['maximum_nights'] +'-'
+    fig = px.bar(df, x='maximum_nights', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 5 Maximun Nights Properties Count', color= 'Number_of_Properties')
     return fig
