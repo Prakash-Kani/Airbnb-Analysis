@@ -163,7 +163,6 @@ def bed_price_pie(country, suburb, bedrooms):
     query = """SELECT bed_type, AVG(price) AS Avg_room_price FROM vacation_rental_listings"""
     query = to_query(query, country, suburb, bedrooms)
     query = query + " GROUP BY bed_type"
-    # print(query)
     mycursor.execute(query)
     data=mycursor.fetchall()
     df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
@@ -217,10 +216,6 @@ def min_nights_properties(country, suburb, bedrooms):
     fig = px.bar(df, x='minimum_nights', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 5 Minimun Nights Properties Count', color= 'Number_of_Properties')
     return fig
 
-
-
-
-
 def max_nights_properties(country, suburb, bedrooms):
     query = "SELECT maximum_nights, count(host_name) as Number_of_Properties FROM vacation_rental_listings"
     query = to_query(query, country, suburb, bedrooms)
@@ -232,4 +227,68 @@ def max_nights_properties(country, suburb, bedrooms):
     df['maximum_nights'] = df['maximum_nights'].astype(str)
     df['maximum_nights'] = df['maximum_nights'] +'-'
     fig = px.bar(df, x='maximum_nights', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 5 Maximun Nights Properties Count', color= 'Number_of_Properties')
+    return fig
+
+def cancellation_fig(country, suburb, bedrooms):
+    query = """SELECT cancellation_policy, count(cancellation_policy) as Number_of_Properties FROM vacation_rental_listings"""
+    query = to_query(query, country, suburb, bedrooms)
+    query = query + " GROUP BY cancellation_policy ORDER BY Number_of_Properties DESC LIMIT 5;"
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    fig = px.pie(df, values='Number_of_Properties', names='cancellation_policy', hole=.7, labels='Number_of_Properties', custom_data= 'cancellation_policy')
+    fig.update_traces(hovertemplate=None, textposition='outside',
+                  textinfo='percent+label', rotation=0)
+    fig.add_annotation(dict(x=0.5, y=0.53,  align='center',
+                        xref = "paper", yref = "paper",
+                        showarrow = False, 
+                        text="<span style='font-size: 25px; color=#555; font-family:Times New Roman'>Cancellation Policy</span>"))
+    return fig
+
+def property_type_fig(country, suburb, bedrooms):
+    query = "SELECT property_type, count(property_type) as Number_of_Properties FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY property_type ORDER BY Number_of_Properties DESC LIMIT 10;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+
+    fig = px.bar(df, x='property_type', y='Number_of_Properties', text = 'Number_of_Properties',title='Top 10 Property Type', color= 'Number_of_Properties')
+    return fig
+
+
+def host_reviews_fig(country, suburb, bedrooms):
+    query = "SELECT host_name,  sum(Number_of_reviews) as Number_of_reviews FROM vacation_rental_listings"
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY host_name ORDER BY Number_of_Reviews DESC LIMIT 10;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+
+    fig = px.bar(df, x='host_name', y='Number_of_reviews', text = 'Number_of_reviews',title='Top 10 Host by Review Count',
+                  color= 'Number_of_reviews')
+    return fig
+
+
+def guests_price_fig(country, suburb, bedrooms):
+    query = """SELECT guests_included, Average_Price_per_Guest
+                FROM (SELECT guests_included, ROUND(AVG(extra_people), 1) AS Average_Price_per_Guest
+                FROM vacation_rental_listings"""
+    query = to_query(query, country, suburb, bedrooms)
+
+    query = query +""" GROUP BY guests_included ORDER BY Average_Price_per_Guest ASC
+    LIMIT 10 ) AS subquery ORDER BY Average_Price_per_Guest DESC;"""
+    mycursor.execute(query)
+    data=mycursor.fetchall()
+
+    df = pd.DataFrame(data, columns = [i[0] for i in mycursor.description])
+    
+    df['guests_included'] = df['guests_included'].astype(str)
+    df['guests_included'] = df['guests_included']+'-'
+    fig = px.bar(df, x='guests_included', y='Average_Price_per_Guest', text = 'Average_Price_per_Guest',title='Lowest Price for Guest',
+                  color= 'Average_Price_per_Guest')
+
     return fig
