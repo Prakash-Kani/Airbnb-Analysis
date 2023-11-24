@@ -5,7 +5,7 @@ ___
 ___
 
 This project focuses on analyzing Airbnb data using MongoDB Atlas. We aim to clean and prepare the dataset, create an interactive web app to explore listings, and visualize pricing and availability trends. The goals include establishing a MongoDB connection, developing dynamic visualizations, and building a user-friendly dashboard using tools like Tableau or Power BI. The project aims to uncover insights into pricing variations, occupancy rates, and location-based trends in an accessible and interactive manner.
-
+![](https://github.com/Prakash-Kani/Airbnb-Analysis/blob/main/Dashboard.pdf)
 ## Required Libraries
 
 To run this project, you'll need to install the following Python libraries. You can do so using `pip`:
