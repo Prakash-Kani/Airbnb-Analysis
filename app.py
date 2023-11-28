@@ -1,5 +1,11 @@
 import streamlit as st
 import main 
+import Extract_Data as ED
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 st.set_page_config(
     page_title="AirBnB Analysis",
@@ -12,22 +18,33 @@ st.set_page_config(
         'About': "# This is a header. This is an *extremely* cool app!"
     }
 )
-col1, col2, col3=st.columns([1,1,1], gap = 'large')
+
+st.header(':red[Airbnb Data Analysis]', divider = 'rainbow')
+col1, col2, col3, col_4=st.columns([1,1,1,1], gap = 'large')
 
 with col1:
+    extract = st.button('Extract & Migration')
+    if extract:
+        username =os.getenv("MONGODB_USER_NAME")
+        password = os.getenv('MONGODB_PASSWORD')
+        airbnb = ED.Extract_Datas(username, password)
+        ED.Create_Table()
+        ED.Insert(airbnb)
+
+with col2:
     country= main.Country()
     country.insert(0,'Select All')
     country =st.selectbox('***Select the Country***', country ,index=0)
 
-with col2:
+with col3:
     suburb = main.Suburb(country)
     suburb.insert(0,'Select All')
-    suburb =st.selectbox('***Select the Country***', suburb ,index=0)
+    suburb =st.selectbox('***Select the Suburb***', suburb ,index=0)
 
-with col3:
+with col_4:
     bed_rooms = main.Bed_room(country, suburb)
     bed_rooms.insert(0,'Select All')
-    bed_rooms =st.selectbox('***Select the Country***', bed_rooms ,index=0)
+    bed_rooms =st.selectbox('***Select the Bed Room Count***', bed_rooms ,index=0)
 
 col4, col5, col6=st.columns([2,2,2], gap = 'small')
 
