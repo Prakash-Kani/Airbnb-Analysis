@@ -189,13 +189,13 @@ class DataExtraction():
 
 
 
-def Preprecessing(airbnb):
+def Preprocessing(airbnb):
 
     duplicates = airbnb.duplicated(subset = '_id', keep = 'first')
     if not duplicates.empty:
         airbnb.drop(airbnb[duplicates].index, inplace = True)
 
-    inconsistent_days=airbnb[(airbnb['availability_30'] <0 ) & (airbnb['availability_30'] >30)]
+    inconsistent_days=airbnb[(airbnb['availability_30'] < 0 ) & (airbnb['availability_30'] >30)]
     if not inconsistent_days.empty:
         airbnb.drop(inconsistent_days.index, inplace = True)
 
@@ -211,11 +211,11 @@ def Preprecessing(airbnb):
     if not inconsistent_days.empty:
         airbnb.drop(inconsistent_days.index, inplace = True)
 
-    inconsistent_dates = airbnb[(airbnb['last_review']> dt.date.today()) | (airbnb['first_review']> dt.date.today())]
+    inconsistent_dates = airbnb[(airbnb['last_review'] > dt.date.today()) | (airbnb['first_review']> dt.date.today())]
     if not inconsistent_dates.empty:
         airbnb.drop(inconsistent_dates.index, inplace = True)
 
-    inconsistent_dates = airbnb[airbnb['first_review'] >airbnb['last_review']]
+    inconsistent_dates = airbnb[airbnb['first_review'] > airbnb['last_review']]
     if not inconsistent_dates.empty:
         airbnb.drop(inconsistent_dates.index, inplace = True)
 
@@ -247,7 +247,7 @@ def Preprecessing(airbnb):
 
 
 
-def Extract_Datas(username, password):
+def Extract_Datas(username, password): 
     
     data = DataExtraction(username, password)
     data.Initial_Data_Extraction()
@@ -258,7 +258,7 @@ def Extract_Datas(username, password):
 
     airbnb = data.Merge_Data()
 
-    airbnb=Preprecessing(airbnb)
+    airbnb=Preprocessing(airbnb)
 
     return airbnb
 
@@ -299,18 +299,18 @@ def Create_Table():
                         host_name VARCHAR(250),
                         host_location VARCHAR(250),
                         host_about LONGTEXT,
-                        host_response_time VARCHAR(250),
                         host_thumbnail_url VARCHAR(250),
                         host_picture_url VARCHAR(250),
                         host_neighbourhood VARCHAR(250),
-                        host_response_rate FLOAT,
                         host_is_superhost BOOL,
                         host_has_profile_pic BOOL,
                         host_identity_verified BOOL,
                         host_listings_count INT,
                         host_total_listings_count INT,
                         host_verifications VARCHAR(250),
-                        Steet VARCHAR(250),
+                        host_response_time VARCHAR(250),
+                        host_response_rate FLOAT,
+                        Street VARCHAR(250),
                         Suburb VARCHAR(250),
                         Government_Area VARCHAR(250),
                         Market VARCHAR(250),
@@ -342,9 +342,9 @@ def Insert(airbnb):
     query =f"""INSERT INTO vacation_rental_listings
             (_id, listing_url, name, space, neighborhood_overview, notes, transit, access, interaction, house_rules, property_type, room_type, bed_type, minimum_nights, maximum_nights,
             cancellation_policy, last_scraped, calendar_last_scraped, first_review, last_review, accommodates, bedrooms, beds, number_of_reviews, bathrooms, amenities, 
-            price, extra_people, guests_included, images, host_id, host_url, host_name, host_location, host_about, host_response_time, host_thumbnail_url,
-            host_picture_url, host_neighbourhood, host_response_rate, host_is_superhost, host_has_profile_pic, host_identity_verified, host_listings_count,
-            host_total_listings_count, host_verifications, Steet, Suburb, Government_Area, Market, Country, Country_Code, Location_type,Longitude, Latitude,
+            price, extra_people, guests_included, images, host_id, host_url, host_name, host_location, host_about, host_thumbnail_url,
+            host_picture_url, host_neighbourhood,  host_is_superhost, host_has_profile_pic, host_identity_verified, host_listings_count,
+            host_total_listings_count, host_verifications, host_response_time, host_response_rate, Street, Suburb, Government_Area, Market, Country, Country_Code, Location_type,Longitude, Latitude,
             Is_Location_Exact, review_scores_accuracy, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location,
             review_scores_value, review_scores_rating, availability_30, availability_60, availability_90, availability_365, is_host_response, is_review_scores)
             VALUES
@@ -385,18 +385,18 @@ def Insert(airbnb):
             host_name = VALUES(host_name),
             host_location = VALUES(host_location),
             host_about = VALUES(host_about),
-            host_response_time = VALUES(host_response_time),
             host_thumbnail_url = VALUES(host_thumbnail_url),
             host_picture_url = VALUES(host_picture_url),
             host_neighbourhood = VALUES(host_neighbourhood),
-            host_response_rate = VALUES(host_response_rate),
             host_is_superhost = VALUES(host_is_superhost),
             host_has_profile_pic = VALUES(host_has_profile_pic),
             host_identity_verified = VALUES(host_identity_verified),
             host_listings_count = VALUES(host_listings_count),
             host_total_listings_count = VALUES(host_total_listings_count),
             host_verifications = VALUES(host_verifications),
-            Steet = VALUES(Steet),
+            host_response_time = VALUES(host_response_time),
+            host_response_rate = VALUES(host_response_rate),
+            Street = VALUES(Street),
             Suburb = VALUES(Suburb),
             Government_Area = VALUES(Government_Area),
             Market = VALUES(Market),
@@ -424,5 +424,4 @@ def Insert(airbnb):
     mycursor.executemany(query, values)
     mydb.commit()
     return 'Successfully Inserted!'
-
 
