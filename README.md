@@ -10,6 +10,7 @@ This project focuses on analyzing Airbnb data using MongoDB Atlas. We aim to cle
 ## Dashboard
 ___
 ![](https://github.com/Prakash-Kani/Airbnb-Analysis/blob/main/Dashboard_image.jpg)
+
 ## Required Libraries
 
 To run this project, you'll need to install the following Python libraries. You can do so using `pip`:
@@ -73,8 +74,10 @@ This ETL (Extract, Transform, Load) process outlines the steps involved in extra
 
 ## 1. Data Extraction from MongoDB
 - The initial step is to extract data from the sample dataset stored in MongoDB. Utilizing Python scripts and pymongo, we fetch relevant information, including key details from the dataset.
+
 ## 2. Data Preprocessing and Cleaning
 - Following extraction, the data undergoes preprocessing and cleaning. This involves handling missing values, removing duplicates, and ensuring data consistency to enhance its quality and usability.
+
 ## 3. Data Loading into MySQL
 - After preprocessing, the data is prepared for storage in MySQL. We leverage SQLAlchemy to facilitate a smooth migration, ensuring efficient storage, retrieval, and further analysis in the MySQL database.
 
@@ -85,10 +88,56 @@ This documentation outlines the straightforward process of exploring and analyzi
 ## 1. Connect to MySQL Database
 - **Objective:** Establish a connection to the MySQL server using the MySQL Connector, ensuring seamless access to the designated database.
 - **Description:** This initial phase involves setting up a connection to the MySQL server, providing a pathway to interact with the database tables and retrieve necessary data.
+
 ## 2. Data Retrieval and Transformation
 - **Objective:** Retrieve and refine data from MySQL tables using SQL queries. Transform the processed data into a DataFrame for further analysis.
 - **Description:** SQL queries are applied to filter, aggregate, and shape the data for analysis. The refined dataset is then transformed into a DataFrame, laying the foundation for the subsequent analytical steps.
+
 ## 3. Dashboard Creation
 - **Objective:** Develop user-friendly dashboards with both Power BI and Streamlit for interactive data exploration.
 - **Description:** Two dashboards are crafted, one using Power BI and the other using Streamlit. These dashboards offer intuitive features, such as dropdown menus for selecting specific analysis questions. Users can explore data insights, presented in both tabular and graphical formats, enhancing overall data-driven decision-making.
 This framework streamlines the exploration and analysis of MySQL database data, delivering user-friendly dashboards through Power BI and Streamlit for an interactive and insightful data experience.
+
+
+# Getting Started
+___
+
+To start with the Business Card Data Extraction project, follow these steps:
+
+1. **Clone the Repository:**
+   - Begin by cloning this GitHub repository to your local machine. Use the following command:
+     ```
+     git clone https://github.com/Prakash-Kani/Airbnb-Analysis.git
+     ```
+
+2. **Create the .env File for MySQL Connection:**
+   - Create a new file named `.env` within your project directory.
+   - Enter the following details in the `.env` file, replacing the placeholder values with your MySQL connection details:
+     ```
+     MONGODB_USER_NAME = 'Enter Your MongoDB User Name'
+     MONGODB_PASSWORD = 'Enter Your MongoDB Password'
+
+     MYSQL_HOST_NAME = 'Enter Your MySQL Host Name'
+     MYSQL_USER_NAME = 'Enter Your MySQL User Name'
+     MYSQL_PASSWORD = 'Enter Your MySQL Password'
+     MYSQL_DATABASE_NAME = 'Enter Your MySQL Database Name'
+     ```
+   - Save the `.env` file once you've entered your actual MySQL database connection information.
+
+3. **Install Required Libraries:**
+   - Ensure you have the necessary Python libraries installed. You can find the required libraries in the "Required Libraries" section of this README. Use pip for installation.
+
+4. **Run the Airbnb Analysis Dashboards:**
+
+   - Open your terminal or command prompt and navigate to the project directory.
+   - Execute the command for the Streamlit dashboard:
+     ```
+     streamlit run app.py
+     ```
+This command will launch the Streamlit application.
+
+5. **Explore the Airbnb Analysis Dashboards:**
+
+   - Once the app is launched, follow the on-screen instructions to explore insights, modify visualizations, and gain valuable information.
+   - For the **Power BI** dashboard, open the file in the Power BI Desktop application.
+Now you're all set to delve into the Airbnb Analysis Dashboards, effortlessly managing and analyzing data for informed decision-making.
